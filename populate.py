@@ -110,7 +110,6 @@ class Populator:
     def _populate_existing_users_permissions(self):
         users_select = db.select(Users)
         users = self.session.execute(users_select).scalars().all()
-        print(len(users))
 
         for user in users:
             user.set_permission()
