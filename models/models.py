@@ -19,6 +19,7 @@ class ResourceTypeEnum(enum.Enum):
     CONTRACT = "contract"
     EVENT = "event"
     CLIENT = "client"
+    USER = "user"
 
 
 class DepartmentEnum(enum.Enum):
@@ -60,7 +61,7 @@ class Users(Base):
         "Permissions",
         secondary=users_permissions_association,
         back_populates="users",
-        collection_class=set
+        collection_class=set,
     )
 
     def __repr__(self):
@@ -70,6 +71,7 @@ class Users(Base):
     def create(cls, session, **kwargs):
         user = Users(**kwargs)
         user.password = argon2.hash(user.password)
+        user.set_permission()
         session.add(user)
         session.commit()
 
@@ -95,6 +97,50 @@ class Users(Base):
             for p in self.permissions
         )
 
+    def bulk_add_permissions(self, permissions_list: list):
+        conds = [
+            (Permissions.permission_type == perm_type)
+            & (Permissions.resource_type == resource_type)
+            for perm_type, resource_type in permissions_list
+        ]
+        query = db.select(Permissions).where(db.or_(*conds))
+        perm_list = self.session.execute(query).scalars().all()
+        self.permissions.update(perm_list)
+
+    def set_permission(self):
+        if self.department.value == DepartmentEnum.GESTION:
+            perms_list = [
+                (PermissionTypeEnum.CREATE, ResourceTypeEnum.CLIENT),
+                (PermissionTypeEnum.CREATE, ResourceTypeEnum.CONTRACT),
+                (PermissionTypeEnum.READ, ResourceTypeEnum.EVENT),
+                (PermissionTypeEnum.READ, ResourceTypeEnum.CLIENT),
+                (PermissionTypeEnum.READ, ResourceTypeEnum.CONTRACT),
+                (PermissionTypeEnum.UPDATE, ResourceTypeEnum.CLIENT),
+                (PermissionTypeEnum.UPDATE, ResourceTypeEnum.CONTRACT),
+                (PermissionTypeEnum.UPDATE, ResourceTypeEnum.EVENT),
+                (PermissionTypeEnum.DELETE, ResourceTypeEnum.CLIENT),
+            ]
+            self.bulk_add_permissions(perms_list)
+        elif self.department.value == DepartmentEnum.COMMERCIAL:
+            perms_list = [
+                (PermissionTypeEnum.CREATE, ResourceTypeEnum.CLIENT),
+                (PermissionTypeEnum.CREATE, ResourceTypeEnum.EVENT),
+                (PermissionTypeEnum.READ, ResourceTypeEnum.EVENT),
+                (PermissionTypeEnum.READ, ResourceTypeEnum.CLIENT),
+                (PermissionTypeEnum.READ, ResourceTypeEnum.CONTRACT),
+                (PermissionTypeEnum.UPDATE, ResourceTypeEnum.CLIENT),
+                (PermissionTypeEnum.UPDATE, ResourceTypeEnum.CONTRACT),
+            ]
+            self.bulk_add_permissions(perms_list)
+        elif self.department.value == DepartmentEnum.SUPPORT:
+            perms_list = [
+                (PermissionTypeEnum.READ, ResourceTypeEnum.EVENT),
+                (PermissionTypeEnum.READ, ResourceTypeEnum.CLIENT),
+                (PermissionTypeEnum.READ, ResourceTypeEnum.CONTRACT),
+                (PermissionTypeEnum.UPDATE, ResourceTypeEnum.EVENT),
+            ]
+            self.bulk_add_permissions(perms_list)
+
 
 class Permissions(Base):
     __tablename__ = "permissions"
@@ -107,7 +153,7 @@ class Permissions(Base):
         "Users",
         secondary=users_permissions_association,
         back_populates="permissions",
-        collection_class=set
+        collection_class=set,
     )
 
     __table_args__ = (
@@ -129,10 +175,16 @@ class Clients(Resources):
     company_name = db.Column(db.String)
 
     events = relationship(
-        "Events", back_populates="client", foreign_keys="Events.client_id", collection_class=set
+        "Events",
+        back_populates="client",
+        foreign_keys="Events.client_id",
+        collection_class=set,
     )
     contracts = relationship(
-        "Contracts", back_populates="client", foreign_keys="[Contracts.client_id]", collection_class=set
+        "Contracts",
+        back_populates="client",
+        foreign_keys="[Contracts.client_id]",
+        collection_class=set,
     )
 
 
@@ -148,10 +200,18 @@ class Contracts(Resources):
     event_id = db.Column(db.Integer, db.ForeignKey("events.id"))
 
     client = relationship(
-        "Clients", back_populates="contracts", uselist=False, foreign_keys=[client_id], collection_class=set
+        "Clients",
+        back_populates="contracts",
+        uselist=False,
+        foreign_keys=[client_id],
+        collection_class=set,
     )
     event = relationship(
-        "Events", back_populates="contract", uselist=False, foreign_keys=[event_id], collection_class=set
+        "Events",
+        back_populates="contract",
+        uselist=False,
+        foreign_keys=[event_id],
+        collection_class=set,
     )
 
 
@@ -168,7 +228,11 @@ class Events(Resources):
     client_id = db.Column(db.Integer, db.ForeignKey("clients.id"))
 
     client = relationship(
-        "Clients", foreign_keys=[client_id], back_populates="events", uselist=False, collection_class=set
+        "Clients",
+        foreign_keys=[client_id],
+        back_populates="events",
+        uselist=False,
+        collection_class=set,
     )
     contract = relationship(
         "Contracts",
