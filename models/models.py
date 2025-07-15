@@ -68,6 +68,14 @@ class Users(Base):
             if argon2.verify(password, user[0].password):
                 return user[0]
 
+    @staticmethod
+    def jwt_authentification(id, username, session):
+        pass_query = db.select(Users).where(Users.id == id, Users.username == username)
+        user = session.execute(pass_query).one_or_none()
+        if user:
+            return True
+        return False
+            
 
 class Permissions(Base):
     __tablename__ = "permissions"
