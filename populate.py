@@ -1,16 +1,9 @@
 import sqlalchemy as db
 
 from db.connexion import engine
-from models.models import (
-    Clients,
-    Contracts,
-    DepartmentEnum,
-    Events,
-    Permissions,
-    PermissionTypeEnum,
-    ResourceTypeEnum,
-    Users,
-)
+from models.models import (Clients, Contracts, DepartmentEnum, Events,
+                           Permissions, PermissionTypeEnum, ResourceTypeEnum,
+                           Users)
 
 
 class Populator:
