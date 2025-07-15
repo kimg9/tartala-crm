@@ -15,6 +15,25 @@ users_permissions_association = Table(
 )
 
 
+class ResourceTypeEnum(enum.Enum):
+    CONTRACT = "contract"
+    EVENT = "event"
+    CLIENT = "client"
+
+
+class DepartmentEnum(enum.Enum):
+    COMMERCIAL = "Département commercial"
+    SUPPORT = "Département support"
+    GESTION = "Département gestion"
+
+
+class PermissionTypeEnum(enum.Enum):
+    CREATE = "create"
+    READ = "read"
+    UPDATE = "update"
+    DELETE = "delete"
+
+
 class Resources(Base):
     # __abstract__ = True
     __tablename__ = "resources"
@@ -26,13 +45,6 @@ class Resources(Base):
     modified_date = db.Column(db.TIMESTAMP, server_default=db.text("CURRENT_TIMESTAMP"))
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     user = relationship("Users", backref="resources")
-    permissions = relationship("Permissions", back_populates="resource")
-
-
-class DepartmentEnum(enum.Enum):
-    COMMERCIAL = "Département commercial"
-    SUPPORT = "Département support"
-    GESTION = "Département gestion"
 
 
 class Users(Base):
@@ -48,6 +60,7 @@ class Users(Base):
         "Permissions",
         secondary=users_permissions_association,
         back_populates="users",
+        collection_class=set
     )
 
     def __repr__(self):
@@ -75,25 +88,32 @@ class Users(Base):
         if user:
             return True
         return False
-            
+
+    def has_permission(self, resource_type: str, permission_type: str) -> bool:
+        return any(
+            p.resource_type == resource_type and p.permission_type == permission_type
+            for p in self.permissions
+        )
+
 
 class Permissions(Base):
     __tablename__ = "permissions"
 
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String)
-
-    resource_id = db.Column(db.Integer, db.ForeignKey("resources.id"), nullable=False)
-    resource = relationship("Resources", back_populates="permissions")
+    permission_type = db.Column(db.Enum(PermissionTypeEnum), nullable=False)
+    resource_type = db.Column(db.Enum(ResourceTypeEnum), nullable=False)
 
     users = relationship(
         "Users",
         secondary=users_permissions_association,
         back_populates="permissions",
+        collection_class=set
     )
 
     __table_args__ = (
-        db.UniqueConstraint("type", "resource_id", name="ucstr_type_resource"),
+        db.UniqueConstraint(
+            "permission_type", "resource_type", name="ucstr_type_resource"
+        ),
     )
 
 
@@ -109,10 +129,10 @@ class Clients(Resources):
     company_name = db.Column(db.String)
 
     events = relationship(
-        "Events", back_populates="client", foreign_keys="Events.client_id"
+        "Events", back_populates="client", foreign_keys="Events.client_id", collection_class=set
     )
     contracts = relationship(
-        "Contracts", back_populates="client", foreign_keys="[Contracts.client_id]"
+        "Contracts", back_populates="client", foreign_keys="[Contracts.client_id]", collection_class=set
     )
 
 
@@ -128,10 +148,10 @@ class Contracts(Resources):
     event_id = db.Column(db.Integer, db.ForeignKey("events.id"))
 
     client = relationship(
-        "Clients", back_populates="contracts", uselist=False, foreign_keys=[client_id]
+        "Clients", back_populates="contracts", uselist=False, foreign_keys=[client_id], collection_class=set
     )
     event = relationship(
-        "Events", back_populates="contract", uselist=False, foreign_keys=[event_id]
+        "Events", back_populates="contract", uselist=False, foreign_keys=[event_id], collection_class=set
     )
 
 
@@ -148,11 +168,12 @@ class Events(Resources):
     client_id = db.Column(db.Integer, db.ForeignKey("clients.id"))
 
     client = relationship(
-        "Clients", foreign_keys=[client_id], back_populates="events", uselist=False
+        "Clients", foreign_keys=[client_id], back_populates="events", uselist=False, collection_class=set
     )
     contract = relationship(
         "Contracts",
         foreign_keys="[Contracts.event_id]",
         back_populates="event",
         uselist=False,
+        collection_class=set,
     )
