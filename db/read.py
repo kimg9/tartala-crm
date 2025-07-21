@@ -1,6 +1,6 @@
 import sqlalchemy as db
 
-from models.models import Clients, Contracts, Events, Users
+from models.models import Clients, Contracts, Events
 
 
 def list_all_events(session):

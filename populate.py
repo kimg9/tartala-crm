@@ -207,10 +207,9 @@ class Populator:
             Events.location == "53 rue du Château, 41120 Candé-sur-Beuvron, France"
         )
         event = self.session.execute(event_select).scalars().all()
-        created_event = Events()
 
         if not event:
-            created_event = Events.create(
+            Events.create(
                 session=self.session,
                 **{
                     "start": datetime(year=2023, month=6, day=4, hour=13),
