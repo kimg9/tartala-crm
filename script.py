@@ -27,7 +27,11 @@ def login(session):
     else:
         payload_data = {"id": user.id, "username": user.username}
         token = jwt.encode(payload=payload_data, key=secret)
-        print(f"Voici votre JWT: {token}")
+        with open(".tartalacrm_config", "w+") as file:
+            file.write(token)
+        print(
+            "Votre token a été sauvegardé dans votre fichier de configuration TartalaCRM."
+        )
 
 
 def populate(session):
@@ -35,8 +39,12 @@ def populate(session):
 
 
 def authenticate(session):
-    token = input("Veuillez renseigner votre jeton JWT: ")
-    if not token:
+    content = ""
+    with open(".tartalacrm_config", "r") as file:
+        content = file.read().strip()
+        print(content)
+
+    if not content:
         print(
             """
             Vous ne pouvez pas accéder à l'application sans JWT. 
@@ -46,7 +54,7 @@ def authenticate(session):
         return False
     try:
         payload = jwt.decode(
-            token,
+            content,
             key=secret,
             algorithms=[
                 "HS256",
@@ -67,6 +75,10 @@ def authenticate(session):
 
 def tartalacrm(session):
     if not authenticate(session):
+        print(
+            "Vous n'êtes pas authentifié. \
+            Merci de récupérer un token JWT d'authentification à partir de la commande 'login'."
+        )
         return
 
     print("Bienvenue dans TartalaCRM !")
