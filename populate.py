@@ -94,7 +94,7 @@ class Populator:
                 conn.commit()
                 return result
 
-    def _populate_root_user(self):
+    def _populate_users_test_data(self):
         user_select = db.select(Users).where(Users.username == "support")
         user = self.session.execute(user_select).scalars().all()
         if not user:
@@ -227,6 +227,6 @@ class Populator:
 
     def populate(self):
         self._populate_permission_table()
-        self._populate_root_user()
+        self._populate_users_test_data()
         self._populate_existing_users_permissions()
         self._populate_test_data()
