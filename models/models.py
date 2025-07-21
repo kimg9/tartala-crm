@@ -1,3 +1,4 @@
+import datetime
 import enum
 
 import sqlalchemy as db
@@ -74,6 +75,7 @@ class Users(Base):
         user.set_permission()
         session.add(user)
         session.commit()
+        return user
 
     @staticmethod
     def authentification(username, password, session):
@@ -168,7 +170,6 @@ class Clients(Resources):
     __mapper_args__ = {"polymorphic_identity": "client"}
 
     id = db.Column(db.Integer, db.ForeignKey("resources.id"), primary_key=True)
-    information = db.Column(db.Text)
     full_name = db.Column(db.String)
     email = db.Column(db.String)
     telephone = db.Column(db.String)
@@ -187,6 +188,15 @@ class Clients(Resources):
         collection_class=set,
     )
 
+    @classmethod
+    def create(cls, session, user, **kwargs):
+        client = Clients(**kwargs)
+        client.creation_date = datetime.datetime.now()
+        client.modified_date = datetime.datetime.now()
+        client.user = user
+        session.add(client)
+        session.commit()
+        return client
 
 class Contracts(Resources):
     __tablename__ = "contracts"
@@ -213,6 +223,16 @@ class Contracts(Resources):
         foreign_keys=[event_id],
         collection_class=set,
     )
+
+    @classmethod
+    def create(cls, session, user, **kwargs):
+        contract = Contracts(**kwargs)
+        contract.creation_date = datetime.datetime.now()
+        contract.modified_date = datetime.datetime.now()
+        contract.user = user
+        session.add(contract)
+        session.commit()
+        return contract
 
 
 class Events(Resources):
@@ -241,3 +261,13 @@ class Events(Resources):
         uselist=False,
         collection_class=set,
     )
+
+    @classmethod
+    def create(cls, session, user, **kwargs):
+        event = Events(**kwargs)
+        event.creation_date = datetime.datetime.now()
+        event.modified_date = datetime.datetime.now()
+        event.user = user
+        session.add(event)
+        session.commit()
+        return event
