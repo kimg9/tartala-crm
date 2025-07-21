@@ -4,14 +4,14 @@ import os
 from datetime import date
 
 import jwt
-import sqlalchemy as db
 from rich import box
 from rich.console import Console
 from rich.table import Table
 from sqlalchemy.orm import sessionmaker
 
 from db.connexion import engine
-from models.models import Clients, Contracts, Events, Users
+from db.read import list_all_clients, list_all_contracts, list_all_events
+from models.models import Users
 from populate import Populator
 
 secret = os.environ.get("JWT_SECRET")
@@ -90,7 +90,7 @@ def list_clients(session):
     now = f"Tableau généré le {date.today()}"
     table = Table(title="Clients", box=box.ROUNDED, caption=now, caption_justify="left")
 
-    clients = session.execute(db.select(Clients)).scalars().all()
+    clients = list_all_clients(session)
 
     table.add_column("Nom complet", style="cyan")
     table.add_column("Email", style="green")
@@ -126,7 +126,7 @@ def list_contracts(session):
         show_lines=True,
     )
 
-    contracts = session.execute(db.select(Contracts)).scalars().all()
+    contracts = list_all_contracts(session)
 
     table.add_column("Identifiant", style="cyan")
     table.add_column("Nom du client", style="green")
@@ -166,7 +166,7 @@ def list_events(session):
         show_lines=True,
     )
 
-    events = session.execute(db.select(Events)).scalars().all()
+    events = list_all_events(session)
 
     table.add_column("Identifiant", style="cyan")
     table.add_column("Identifiant du contrat", style="light_salmon1")
