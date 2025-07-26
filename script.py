@@ -35,7 +35,7 @@ def login(session):
         with open(".tartalacrm_config", "w+") as file:
             file.write(token)
         print(
-            "Votre token a été sauvegardé dans votre fichier de configuration TartalaCRM."
+            "Connecté avec succès."
         )
 
 
@@ -47,7 +47,6 @@ def authenticate(session):
     content = ""
     with open(".tartalacrm_config", "r") as file:
         content = file.read().strip()
-        print(content)
 
     if not content:
         print(

@@ -198,6 +198,7 @@ class Clients(Resources):
         session.commit()
         return client
 
+
 class Contracts(Resources):
     __tablename__ = "contracts"
     __mapper_args__ = {"polymorphic_identity": "contract"}
