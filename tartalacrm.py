@@ -9,10 +9,10 @@ from rich import box
 from rich.console import Console
 from rich.table import Table
 
-from app.client_app import ClientApp
-from app.contract_app import ContractApp
-from app.event_app import EventApp
-from app.user_app import UserApp
+from domain.client_app import ClientApp
+from domain.contract_app import ContractApp
+from domain.event_app import EventApp
+from domain.user_app import UserApp
 from db_config.connexion import session
 from populate import Populator
 
@@ -41,7 +41,7 @@ def authenticated_command(f):
             raise click.ClickException(
                 """
                 Vous ne pouvez pas accéder à l'application sans JWT. 
-                Merci d'en récupérer un à partir de la commande 'login'
+                Merci d'utiliser la commande 'login' pour vous connecter.
                 """
             )
 
@@ -53,13 +53,13 @@ def authenticated_command(f):
                     "HS256",
                 ],
             )
-        except jwt.ExpiredSignatureError as e:
-            raise click.ClickException(f"Votre token est expiré: {e}")
-        except jwt.InvalidSignatureError as e:
-            raise click.ClickException(f"Votre token n'est pas valide: {e}")
-        except jwt.DecodeError as e:
+        except jwt.ExpiredSignatureError:
+            raise click.ClickException(f"Votre token est expiré. Merci d'utiliser la commande 'login' pour vous connecter.")
+        except jwt.InvalidSignatureError:
+            raise click.ClickException(f"Votre token n'est pas valide. Merci d'utiliser la commande 'login' pour vous connecter.")
+        except jwt.DecodeError:
             raise click.ClickException(
-                f"Votre token n'est pas dans un format valide: {e}")
+                f"Votre token n'est pas dans un format valide. Merci d'utiliser la commande 'login' pour vous connecter.")
         else:
             user = user_app.jwt_authentification(
                 payload["id"], payload["username"])
@@ -95,7 +95,9 @@ def login():
 @entry_point.command("list_items")
 @click.argument("items", type=click.Choice(['clients', 'events', 'contracts']))
 @authenticated_command
-def list_items(items):
+def list_items(items, user):
+    if not user:
+        raise click.ClickException("Utilisateur inconnu")
     now = f"Tableau généré le {date.today()}"
     table = Table(title=items.capitalize(), box=box.ROUNDED,
                   caption=now, caption_justify="left")
@@ -113,12 +115,11 @@ def list_items(items):
 
 
 @entry_point.command("update_item")
-@click.argument("item_type", type=click.Choice(['clients', 'events', 'contracts']))
+@click.argument("item_type", type=click.Choice(['client', 'event', 'contract']))
 @click.argument("item_id", type=click.INT)
 @authenticated_command
 def update_item(item_type, item_id, user):
-    if user:
-        print("yeah")
+    pass
 
 
 # TODO: remove after dev phase is over
