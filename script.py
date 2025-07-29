@@ -9,6 +9,9 @@ from rich import box
 from rich.console import Console
 from rich.table import Table
 
+from app.client_app import ClientApp
+from app.contract_app import ContractApp
+from app.event_app import EventApp
 from app.user_app import UserApp
 from db_config.connexion import session
 from populate import Populator
@@ -22,6 +25,9 @@ client_repo = ClientRepository(session)
 contract_repo = ContractRepository(session)
 event_repo = EventRepository(session)
 populator = Populator(session)
+client_app = ClientApp()
+event_app = EventApp()
+contract_app = ContractApp()
 
 
 @click.group()
@@ -58,7 +64,8 @@ def authenticated_command(f):
         except jwt.InvalidSignatureError as e:
             raise click.ClickException(f"Votre token n'est pas valide: {e}")
         except jwt.DecodeError as e:
-            raise click.ClickException(f"Votre token n'est pas dans un format valide: {e}")
+            raise click.ClickException(
+                f"Votre token n'est pas dans un format valide: {e}")
         else:
             if not user_app.jwt_authentification(payload["id"], payload["username"]):
                 raise click.ClickException("Utilisateur inconnu")
@@ -106,81 +113,13 @@ def list_items(items):
     match items:
         case "clients":
             clients = client_repo.list_all_clients()
-
-            table.add_column("Nom complet", style="cyan")
-            table.add_column("Email", style="green")
-            table.add_column("Téléphone", style="green")
-            table.add_column("Nom de l'entreprise", style="magenta")
-            table.add_column("Date de création", style="deep_sky_blue3")
-            table.add_column("Dernière mise à jour/contact",
-                             style="deep_sky_blue3")
-            table.add_column("Contact commercial chez Epic Events",
-                             style="deep_sky_blue3")
-
-            for client in clients:
-                table.add_row(
-                    client.full_name,
-                    client.email,
-                    client.telephone,
-                    client.company_name,
-                    client.creation_date.strftime("%d/%m/%Y"),
-                    client.modified_date.strftime("%d/%m/%Y"),
-                    client.user.name,
-                )
+            client_app.add_client_column_to_table(table, clients)
         case "events":
             events = event_repo.list_all_events()
-
-            table.add_column("Identifiant", style="cyan")
-            table.add_column("Identifiant du contrat", style="light_salmon1")
-            table.add_column("Nom du client", style="green")
-            table.add_column("Contact du client", style="green")
-            table.add_column("Date de début", style="magenta")
-            table.add_column("Date de fin", style="magenta")
-            table.add_column("Contact support chez Epic Events",
-                             style="deep_sky_blue3")
-            table.add_column("Localisation", style="turquoise2")
-            table.add_column("Participants", style="turquoise2")
-            table.add_column("Notes", style="pale_violet_red1")
-
-            for event in events:
-                table.add_row(
-                    f"{event.id}",
-                    f"{event.contract.id}" if event.contract else "",
-                    event.client.full_name,
-                    f"{event.client.email}\n{event.client.telephone}",
-                    event.start.strftime("%d/%m/%Y %H:%M"),
-                    event.end.strftime("%d/%m/%Y %H:%M"),
-                    event.user.name,
-                    event.location,
-                    f"{event.attendees}",
-                    event.notes,
-                )
+            event_app.add_event_column_to_table(table, events)
         case "contracts":
             contracts = contract_repo.list_all_contracts()
-
-            table.add_column("Identifiant", style="cyan")
-            table.add_column("Nom du client", style="green")
-            table.add_column("Contact du client", style="green")
-            table.add_column("Contact commercial chez Epic Events",
-                             style="deep_sky_blue3")
-            table.add_column("Montant total", style="magenta")
-            table.add_column("Restant à payer", style="magenta")
-            table.add_column("Date de création", style="pale_violet_red1")
-            table.add_column("Dernière mise à jour/contact", style="pale_violet_red1")
-            table.add_column("Statut du contrat", style="turquoise2")
-
-            for contract in contracts:
-                table.add_row(
-                    f"{contract.id}",
-                    contract.client.full_name,
-                    f"{contract.client.email}\n{contract.client.telephone}",
-                    contract.user.name,
-                    f"{contract.amount} €",
-                    f"{contract.due_amount} €",
-                    contract.creation_date.strftime("%d/%m/%Y"),
-                    contract.modified_date.strftime("%d/%m/%Y"),
-                    contract.status,
-                )
+            contract_app.add_contract_column_to_table(table, contracts)
 
     console = Console()
     console.print(table, justify="left")

@@ -10,7 +10,7 @@ class ClientRepository:
     def get_by_id(self, id):
         pass_query = db.select(Clients).where(Clients.id == id)
         return self.session.execute(pass_query).scalar_one_or_none()
-    
+
     def list_all_clients(self):
         return self.session.execute(db.select(Clients)).scalars().all()
 
