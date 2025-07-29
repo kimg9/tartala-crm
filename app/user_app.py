@@ -25,10 +25,7 @@ class UserApp:
 
     @staticmethod
     def jwt_authentification(id, username):
-        user = user_repo.get_by_id_and_username(id, username)
-        if user:
-            return True
-        return False
+        return user_repo.get_by_id_and_username(id, username)
 
     def set_permission(self, user):
         if user.department.value == DepartmentEnum.GESTION:
