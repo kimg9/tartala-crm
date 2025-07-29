@@ -2,17 +2,17 @@ import datetime
 import enum
 
 import sqlalchemy as db
-from passlib.hash import argon2
 from sqlalchemy import Table
 from sqlalchemy.orm import relationship
 
-from db.base import Base
+from db_config.base import Base
 
 users_permissions_association = Table(
     "users_permissions",
     Base.metadata,
     db.Column("user_id", db.ForeignKey("users.id"), primary_key=True),
-    db.Column("permission_id", db.ForeignKey("permissions.id"), primary_key=True),
+    db.Column("permission_id", db.ForeignKey(
+        "permissions.id"), primary_key=True),
 )
 
 
@@ -39,12 +39,15 @@ class PermissionTypeEnum(enum.Enum):
 class Resources(Base):
     # __abstract__ = True
     __tablename__ = "resources"
-    __mapper_args__ = {"polymorphic_identity": "resources", "polymorphic_on": "type"}
+    __mapper_args__ = {"polymorphic_identity": "resources",
+                       "polymorphic_on": "type"}
 
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String)
-    creation_date = db.Column(db.TIMESTAMP, server_default=db.text("CURRENT_TIMESTAMP"))
-    modified_date = db.Column(db.TIMESTAMP, server_default=db.text("CURRENT_TIMESTAMP"))
+    creation_date = db.Column(
+        db.TIMESTAMP, server_default=db.text("CURRENT_TIMESTAMP"))
+    modified_date = db.Column(
+        db.TIMESTAMP, server_default=db.text("CURRENT_TIMESTAMP"))
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     user = relationship("Users", backref="resources")
 
@@ -67,81 +70,6 @@ class Users(Base):
 
     def __repr__(self):
         return f"User {self.name}"
-
-    @classmethod
-    def create(cls, session, **kwargs):
-        user = Users(**kwargs)
-        user.password = argon2.hash(user.password)
-        user.set_permission()
-        session.add(user)
-        session.commit()
-        return user
-
-    @staticmethod
-    def authentification(username, password, session):
-        pass_query = db.select(Users).where(Users.username == username)
-        user = session.execute(pass_query).one_or_none()
-        if user:
-            if argon2.verify(password, user[0].password):
-                return user[0]
-
-    @staticmethod
-    def jwt_authentification(id, username, session):
-        pass_query = db.select(Users).where(Users.id == id, Users.username == username)
-        user = session.execute(pass_query).one_or_none()
-        if user:
-            return True
-        return False
-
-    def has_permission(self, resource_type: str, permission_type: str) -> bool:
-        return any(
-            p.resource_type == resource_type and p.permission_type == permission_type
-            for p in self.permissions
-        )
-
-    def bulk_add_permissions(self, permissions_list: list):
-        conds = [
-            (Permissions.permission_type == perm_type)
-            & (Permissions.resource_type == resource_type)
-            for perm_type, resource_type in permissions_list
-        ]
-        query = db.select(Permissions).where(db.or_(*conds))
-        perm_list = self.session.execute(query).scalars().all()
-        self.permissions.update(perm_list)
-
-    def set_permission(self):
-        if self.department.value == DepartmentEnum.GESTION:
-            perms_list = [
-                (PermissionTypeEnum.CREATE, ResourceTypeEnum.CLIENT),
-                (PermissionTypeEnum.CREATE, ResourceTypeEnum.CONTRACT),
-                (PermissionTypeEnum.READ, ResourceTypeEnum.EVENT),
-                (PermissionTypeEnum.READ, ResourceTypeEnum.CLIENT),
-                (PermissionTypeEnum.READ, ResourceTypeEnum.CONTRACT),
-                (PermissionTypeEnum.UPDATE, ResourceTypeEnum.CLIENT),
-                (PermissionTypeEnum.UPDATE, ResourceTypeEnum.CONTRACT),
-                (PermissionTypeEnum.UPDATE, ResourceTypeEnum.EVENT),
-                (PermissionTypeEnum.DELETE, ResourceTypeEnum.CLIENT),
-            ]
-            self.bulk_add_permissions(perms_list)
-        elif self.department.value == DepartmentEnum.COMMERCIAL:
-            perms_list = [
-                (PermissionTypeEnum.CREATE, ResourceTypeEnum.CLIENT),
-                (PermissionTypeEnum.CREATE, ResourceTypeEnum.EVENT),
-                (PermissionTypeEnum.READ, ResourceTypeEnum.EVENT),
-                (PermissionTypeEnum.READ, ResourceTypeEnum.CLIENT),
-                (PermissionTypeEnum.READ, ResourceTypeEnum.CONTRACT),
-                (PermissionTypeEnum.UPDATE, ResourceTypeEnum.CLIENT),
-                (PermissionTypeEnum.UPDATE, ResourceTypeEnum.CONTRACT),
-            ]
-            self.bulk_add_permissions(perms_list)
-        elif self.department.value == DepartmentEnum.SUPPORT:
-            perms_list = [
-                (PermissionTypeEnum.READ, ResourceTypeEnum.EVENT),
-                (PermissionTypeEnum.READ, ResourceTypeEnum.CLIENT),
-                (PermissionTypeEnum.READ, ResourceTypeEnum.CONTRACT),
-                (PermissionTypeEnum.UPDATE, ResourceTypeEnum.EVENT),
-            ]
-            self.bulk_add_permissions(perms_list)
 
 
 class Permissions(Base):
@@ -187,16 +115,6 @@ class Clients(Resources):
         foreign_keys="[Contracts.client_id]",
         collection_class=set,
     )
-
-    @classmethod
-    def create(cls, session, user, **kwargs):
-        client = Clients(**kwargs)
-        client.creation_date = datetime.datetime.now()
-        client.modified_date = datetime.datetime.now()
-        client.user = user
-        session.add(client)
-        session.commit()
-        return client
 
 
 class Contracts(Resources):

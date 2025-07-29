@@ -7,24 +7,30 @@ import jwt
 from rich import box
 from rich.console import Console
 from rich.table import Table
-from sqlalchemy.orm import sessionmaker
 
-from db.connexion import engine
-from db.read import list_all_clients, list_all_contracts, list_all_events
-from models.models import Users
+from app.user_app import UserApp
+from db_config.connexion import session
 from populate import Populator
+from repositories.clients.client_repository import ClientRepository
+from repositories.contracts.contract_repository import ContractRepository
+from repositories.events.event_repository import EventRepository
 
 secret = os.environ.get("JWT_SECRET")
+user_app = UserApp()
+client_repo = ClientRepository(session)
+contract_repo = ContractRepository(session)
+event_repo = EventRepository(session)
+populator = Populator(session)
 
 
-def login(session):
+def login():
     username = None
     while not username:
         username = input(
             "Veuillez renseigner votre nom d'utilisateur (ne peut être vide):"
         )
     password = getpass.getpass("Veuillez renseigner votre mot de passe:")
-    user = Users.authentification(username, password, session)
+    user = user_app.authentification(username, password)
     if not user:
         print(
             "Désolé, votre utilisateur ou mot de passe n'est pas connu. Veuillez recommencer."
@@ -34,16 +40,14 @@ def login(session):
         token = jwt.encode(payload=payload_data, key=secret)
         with open(".tartalacrm_config", "w+") as file:
             file.write(token)
-        print(
-            "Connecté avec succès."
-        )
+        print("Connecté avec succès.")
 
 
-def populate(session):
-    Populator(session).populate()
+def populate():
+    populator.populate()
 
 
-def authenticate(session):
+def authenticate():
     content = ""
     with open(".tartalacrm_config", "r") as file:
         content = file.read().strip()
@@ -71,7 +75,7 @@ def authenticate(session):
     except jwt.DecodeError as e:
         print(f"Votre token n'est pas dans un format valide: {e}")
     else:
-        if not Users.jwt_authentification(payload["id"], payload["username"], session):
+        if not user_app.jwt_authentification(payload["id"], payload["username"]):
             print("Utilisateur inconnu")
         else:
             print("Bienvenue dans TartalaCRM !")
@@ -84,12 +88,13 @@ def authenticate(session):
     )
 
 
-def list_clients(session):
-    authenticate(session)
+def list_clients():
+    authenticate()
     now = f"Tableau généré le {date.today()}"
-    table = Table(title="Clients", box=box.ROUNDED, caption=now, caption_justify="left")
+    table = Table(title="Clients", box=box.ROUNDED,
+                  caption=now, caption_justify="left")
 
-    clients = list_all_clients(session)
+    clients = client_repo.list_all_clients()
 
     table.add_column("Nom complet", style="cyan")
     table.add_column("Email", style="green")
@@ -97,7 +102,8 @@ def list_clients(session):
     table.add_column("Nom de l'entreprise", style="magenta")
     table.add_column("Date de création", style="deep_sky_blue3")
     table.add_column("Dernière mise à jour/contact", style="deep_sky_blue3")
-    table.add_column("Contact commercial chez Epic Events", style="deep_sky_blue3")
+    table.add_column("Contact commercial chez Epic Events",
+                     style="deep_sky_blue3")
 
     for client in clients:
         table.add_row(
@@ -114,8 +120,8 @@ def list_clients(session):
     console.print(table, justify="left")
 
 
-def list_contracts(session):
-    authenticate(session)
+def list_contracts():
+    authenticate()
     now = f"Tableau généré le {date.today()}"
     table = Table(
         title="Contrats",
@@ -125,12 +131,13 @@ def list_contracts(session):
         show_lines=True,
     )
 
-    contracts = list_all_contracts(session)
+    contracts = contract_repo.list_all_contracts()
 
     table.add_column("Identifiant", style="cyan")
     table.add_column("Nom du client", style="green")
     table.add_column("Contact du client", style="green")
-    table.add_column("Contact commercial chez Epic Events", style="deep_sky_blue3")
+    table.add_column("Contact commercial chez Epic Events",
+                     style="deep_sky_blue3")
     table.add_column("Montant total", style="magenta")
     table.add_column("Restant à payer", style="magenta")
     table.add_column("Date de création", style="pale_violet_red1")
@@ -154,8 +161,8 @@ def list_contracts(session):
     console.print(table, justify="left")
 
 
-def list_events(session):
-    authenticate(session)
+def list_events():
+    authenticate()
     now = f"Tableau généré le {date.today()}"
     table = Table(
         title="Contrats",
@@ -165,7 +172,7 @@ def list_events(session):
         show_lines=True,
     )
 
-    events = list_all_events(session)
+    events = event_repo.list_all_events()
 
     table.add_column("Identifiant", style="cyan")
     table.add_column("Identifiant du contrat", style="light_salmon1")
@@ -173,7 +180,8 @@ def list_events(session):
     table.add_column("Contact du client", style="green")
     table.add_column("Date de début", style="magenta")
     table.add_column("Date de fin", style="magenta")
-    table.add_column("Contact support chez Epic Events", style="deep_sky_blue3")
+    table.add_column("Contact support chez Epic Events",
+                     style="deep_sky_blue3")
     table.add_column("Localisation", style="turquoise2")
     table.add_column("Participants", style="turquoise2")
     table.add_column("Notes", style="pale_violet_red1")
@@ -181,7 +189,7 @@ def list_events(session):
     for event in events:
         table.add_row(
             f"{event.id}",
-            f"{event.contract.id}",
+            f"{event.contract.id}" if event.contract else "",
             event.client.full_name,
             f"{event.client.email}\n{event.client.telephone}",
             event.start.strftime("%d/%m/%Y %H:%M"),
@@ -197,15 +205,13 @@ def list_events(session):
 
 
 if __name__ == "__main__":
-    Session = sessionmaker(bind=engine)
-    session = Session()
-
     parser = argparse.ArgumentParser(description="TartalaCRM")
     parser.add_argument(
         "command",
-        choices=["login", "populate", "list_clients", "list_contracts", "list_events"],
+        choices=["login", "populate", "list_clients",
+                 "list_contracts", "list_events"],
         help="Commandes à exécuter",
     )
     args = parser.parse_args()
 
-    globals()[args.command](session)
+    globals()[args.command]()

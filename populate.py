@@ -2,10 +2,19 @@ from datetime import datetime
 
 import sqlalchemy as db
 
-from db.connexion import engine
+from app.client_app import ClientApp
+from app.contract_app import ContractApp
+from app.event_app import EventApp
+from app.user_app import UserApp
+from db_config.connexion import engine
 from models.models import (Clients, Contracts, DepartmentEnum, Events,
                            Permissions, PermissionTypeEnum, ResourceTypeEnum,
                            Users)
+
+user_app = UserApp()
+client_app = ClientApp()
+event_app = EventApp()
+contract_app = ContractApp()
 
 
 class Populator:
@@ -98,8 +107,7 @@ class Populator:
         user_select = db.select(Users).where(Users.username == "support")
         user = self.session.execute(user_select).scalars().all()
         if not user:
-            Users.create(
-                session=self.session,
+            user_app.create(
                 **{
                     "username": "support",
                     "password": "support",
@@ -112,8 +120,7 @@ class Populator:
         user_select = db.select(Users).where(Users.username == "commercial")
         user = self.session.execute(user_select).scalars().all()
         if not user:
-            Users.create(
-                session=self.session,
+            user_app.create(
                 **{
                     "username": "commercial",
                     "password": "commercial",
@@ -126,8 +133,7 @@ class Populator:
         user_select = db.select(Users).where(Users.username == "gestion")
         user = self.session.execute(user_select).scalars().all()
         if not user:
-            Users.create(
-                session=self.session,
+            user_app.create(
                 **{
                     "username": "gestion",
                     "password": "gestion",
@@ -142,7 +148,7 @@ class Populator:
         users = self.session.execute(users_select).scalars().all()
 
         for user in users:
-            user.set_permission()
+            user_app.set_permission(user)
 
         self.session.commit()
 
@@ -154,8 +160,7 @@ class Populator:
         client = self.session.execute(client_select).scalars().all()
 
         if not client:
-            Clients.create(
-                session=self.session,
+            client_app.create(
                 **{
                     "full_name": "Kevin Casey",
                     "email": "kevin@startup.io",
@@ -166,12 +171,12 @@ class Populator:
             )
 
         client_select = db.select(Clients).where(Clients.full_name == "John Ouick")
-        client = self.session.execute(client_select).scalars().all()
-        created_client = Clients()
+        created_client = self.session.execute(client_select).scalars().first()
+        print("***********************************")
+        print(created_client)
 
-        if not client:
-            created_client = Clients.create(
-                session=self.session,
+        if not created_client:
+            created_client = client_app.create(
                 **{
                     "full_name": "John Ouick",
                     "email": "john.ouick@gmail.com",
@@ -184,12 +189,10 @@ class Populator:
         contract_select = db.select(Contracts).where(
             Contracts.amount == 1000, Contracts.client_id == created_client.id
         )
-        contract = self.session.execute(contract_select).scalars().all()
-        created_contract = Contracts()
+        created_contract = self.session.execute(contract_select).scalars().first()
 
-        if not contract:
-            created_contract = Contracts.create(
-                session=self.session,
+        if not created_contract:
+            created_contract = contract_app.create(
                 **{
                     "amount": 1000,
                     "due_amount": 500,
@@ -209,8 +212,7 @@ class Populator:
         event = self.session.execute(event_select).scalars().all()
 
         if not event:
-            Events.create(
-                session=self.session,
+            event_app.create(
                 **{
                     "start": datetime(year=2023, month=6, day=4, hour=13),
                     "end": datetime(year=2023, month=6, day=5, hour=2),
