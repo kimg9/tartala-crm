@@ -2,10 +2,10 @@ from datetime import datetime
 
 import sqlalchemy as db
 
-from app.client_app import ClientApp
-from app.contract_app import ContractApp
-from app.event_app import EventApp
-from app.user_app import UserApp
+from domain.client_app import ClientApp
+from domain.contract_app import ContractApp
+from domain.event_app import EventApp
+from domain.user_app import UserApp
 from db_config.connexion import engine
 from models.models import (Clients, Contracts, DepartmentEnum, Events,
                            Permissions, PermissionTypeEnum, ResourceTypeEnum,
