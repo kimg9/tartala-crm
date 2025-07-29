@@ -172,8 +172,6 @@ class Populator:
 
         client_select = db.select(Clients).where(Clients.full_name == "John Ouick")
         created_client = self.session.execute(client_select).scalars().first()
-        print("***********************************")
-        print(created_client)
 
         if not created_client:
             created_client = client_app.create(
