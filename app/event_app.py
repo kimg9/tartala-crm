@@ -14,7 +14,9 @@ class EventApp:
         return event_repo.create_event(**kwargs)
 
     @staticmethod
-    def add_event_column_to_table(table, events):
+    def add_event_column_to_table(table):
+        events = event_repo.list_all_events()
+        
         table.add_column("Identifiant", style="cyan")
         table.add_column("Identifiant du contrat", style="light_salmon1")
         table.add_column("Nom du client", style="green")

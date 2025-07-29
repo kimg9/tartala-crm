@@ -15,16 +15,10 @@ from app.event_app import EventApp
 from app.user_app import UserApp
 from db_config.connexion import session
 from populate import Populator
-from repositories.clients.client_repository import ClientRepository
-from repositories.contracts.contract_repository import ContractRepository
-from repositories.events.event_repository import EventRepository
 
 secret = os.environ.get("JWT_SECRET")
-user_app = UserApp()
-client_repo = ClientRepository(session)
-contract_repo = ContractRepository(session)
-event_repo = EventRepository(session)
 populator = Populator(session)
+user_app = UserApp()
 client_app = ClientApp()
 event_app = EventApp()
 contract_app = ContractApp()
@@ -67,11 +61,13 @@ def authenticated_command(f):
             raise click.ClickException(
                 f"Votre token n'est pas dans un format valide: {e}")
         else:
-            if not user_app.jwt_authentification(payload["id"], payload["username"]):
+            user = user_app.jwt_authentification(
+                payload["id"], payload["username"])
+            if not user:
                 raise click.ClickException("Utilisateur inconnu")
             else:
                 print("Bienvenue dans TartalaCRM !")
-                return f(*args, **kwargs)
+                return f(*args, **kwargs, user=user)
     return wrapper
 
 
@@ -96,12 +92,6 @@ def login():
         print("Connecté avec succès.")
 
 
-@entry_point.command()
-@authenticated_command
-def populate():
-    populator.populate()
-
-
 @entry_point.command("list_items")
 @click.argument("items", type=click.Choice(['clients', 'events', 'contracts']))
 @authenticated_command
@@ -112,14 +102,11 @@ def list_items(items):
 
     match items:
         case "clients":
-            clients = client_repo.list_all_clients()
-            client_app.add_client_column_to_table(table, clients)
+            client_app.add_client_column_to_table(table)
         case "events":
-            events = event_repo.list_all_events()
-            event_app.add_event_column_to_table(table, events)
+            event_app.add_event_column_to_table(table)
         case "contracts":
-            contracts = contract_repo.list_all_contracts()
-            contract_app.add_contract_column_to_table(table, contracts)
+            contract_app.add_contract_column_to_table(table)
 
     console = Console()
     console.print(table, justify="left")
@@ -127,3 +114,10 @@ def list_items(items):
 
 if __name__ == "__main__":
     entry_point()
+
+
+# TODO: remove after dev phase is over
+@entry_point.command()
+@authenticated_command
+def populate():
+    populator.populate()

@@ -14,7 +14,9 @@ class ContractApp:
         return contract_repo.create_contract(**kwargs)
 
     @staticmethod
-    def add_contract_column_to_table(table, contracts):
+    def add_contract_column_to_table(table):
+        contracts = contract_repo.list_all_contracts()
+        
         table.add_column("Identifiant", style="cyan")
         table.add_column("Nom du client", style="green")
         table.add_column("Contact du client", style="green")

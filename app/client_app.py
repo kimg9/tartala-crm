@@ -14,7 +14,9 @@ class ClientApp:
         return client_repo.create_client(**kwargs)
 
     @staticmethod
-    def add_client_column_to_table(table, clients):
+    def add_client_column_to_table(table):
+        clients = client_repo.list_all_clients()
+        
         table.add_column("Nom complet", style="cyan")
         table.add_column("Email", style="green")
         table.add_column("Téléphone", style="green")
