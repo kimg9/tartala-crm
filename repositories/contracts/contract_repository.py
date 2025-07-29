@@ -19,15 +19,6 @@ class ContractRepository:
         self.session.add(contract)
         self.session.commit()
         return contract
-
-    def update_contract(self, id, **kwargs):
-        contract = self.get_by_id(id)
-        if not contract:
-            return None
-
-        for key, value in kwargs.items():
-            if hasattr(contract, key):
-                setattr(contract, key, value)
-
+    
+    def save_to_db(self):
         self.session.commit()
-        return contract

@@ -13,6 +13,23 @@ class EventApp:
 
         return event_repo.create_event(**kwargs)
 
+    def update(self, id, **kwargs):
+        event = event_repo.get_by_id(id)
+        if not event:
+            return None
+
+        forbidden_fields = ["id", "creation_date", "modified_date"]
+
+        for key, value in kwargs.items():
+            if key not in forbidden_fields:
+                if hasattr(event, key):
+                    setattr(event, key, value)
+
+        kwargs["modified_date"] = datetime.now()
+
+        event_repo.save_to_db()
+        return event
+
     @staticmethod
     def add_event_column_to_table(table):
         events = event_repo.list_all_events()

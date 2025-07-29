@@ -13,6 +13,23 @@ class ContractApp:
 
         return contract_repo.create_contract(**kwargs)
 
+    def update(self, id, **kwargs):
+        contract = contract_repo.get_by_id(id)
+        if not contract:
+            return None
+
+        forbidden_fields = ["id", "creation_date", "modified_date"]
+
+        for key, value in kwargs.items():
+            if key not in forbidden_fields:
+                if hasattr(contract, key):
+                    setattr(contract, key, value)
+
+        kwargs["modified_date"] = datetime.now()
+
+        contract_repo.save_to_db()
+        return contract
+
     @staticmethod
     def add_contract_column_to_table(table):
         contracts = contract_repo.list_all_contracts()

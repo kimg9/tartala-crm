@@ -20,14 +20,5 @@ class ClientRepository:
         self.session.commit()
         return client
 
-    def update_client(self, id, **kwargs):
-        client = self.get_by_id(id)
-        if not client:
-            return None
-
-        for key, value in kwargs.items():
-            if hasattr(client, key):
-                setattr(client, key, value)
-
+    def save_to_db(self):
         self.session.commit()
-        return client

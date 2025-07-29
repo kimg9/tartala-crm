@@ -20,14 +20,5 @@ class EventRepository:
         self.session.commit()
         return event
 
-    def update_event(self, id, **kwargs):
-        event = self.get_by_id(id)
-        if not event:
-            return None
-
-        for key, value in kwargs.items():
-            if hasattr(event, key):
-                setattr(event, key, value)
-
+    def save_to_db(self):
         self.session.commit()
-        return event

@@ -112,8 +112,13 @@ def list_items(items):
     console.print(table, justify="left")
 
 
-if __name__ == "__main__":
-    entry_point()
+@entry_point.command("update_item")
+@click.argument("item_type", type=click.Choice(['clients', 'events', 'contracts']))
+@click.argument("item_id", type=click.INT)
+@authenticated_command
+def update_item(item_type, item_id, user):
+    if user:
+        print("yeah")
 
 
 # TODO: remove after dev phase is over
@@ -121,3 +126,7 @@ if __name__ == "__main__":
 @authenticated_command
 def populate():
     populator.populate()
+
+
+if __name__ == "__main__":
+    entry_point()

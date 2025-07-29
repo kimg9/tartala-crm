@@ -13,6 +13,23 @@ class ClientApp:
 
         return client_repo.create_client(**kwargs)
 
+    def update(self, id, **kwargs):
+        client = client_repo.get_by_id(id)
+        if not client:
+            return None
+
+        forbidden_fields = ["id", "creation_date", "modified_date"]
+
+        for key, value in kwargs.items():
+            if key not in forbidden_fields:
+                if hasattr(client, key):
+                    setattr(client, key, value)
+
+        kwargs["modified_date"] = datetime.now()
+
+        client_repo.save_to_db()
+        return client
+
     @staticmethod
     def add_client_column_to_table(table):
         clients = client_repo.list_all_clients()
