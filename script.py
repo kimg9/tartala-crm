@@ -33,8 +33,9 @@ def authenticated_command(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         content = ""
-        with open(".tartalacrm_config", "r") as file:
-            content = file.read().strip()
+        if os.path.exists(".tartalacrm_config"):
+            with open(".tartalacrm_config", "r") as file:
+                content = file.read().strip()
 
         if not content:
             raise click.ClickException(
