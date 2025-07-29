@@ -7,7 +7,7 @@ from .base import Base
 
 url_object = URL.create("sqlite", database="tartala-crm")
 
-engine = create_engine(url_object, echo=True)
+engine = create_engine(url_object, echo=False)
 
 Base.metadata.create_all(engine)
 
