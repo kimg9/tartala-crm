@@ -19,6 +19,14 @@ class ContractRepository:
         self.session.add(contract)
         self.session.commit()
         return contract
-    
+
     def save_to_db(self):
         self.session.commit()
+
+    def delete(self, contract_id):
+        contract = self.get_by_id(contract_id)
+        if contract:
+            self.session.delete(contract)
+            self.save_to_db()
+            return True
+        return False

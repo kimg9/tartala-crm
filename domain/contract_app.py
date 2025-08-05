@@ -33,6 +33,9 @@ class ContractApp:
         contract_repo.save_to_db()
         return contract
 
+    def delete(self, id):
+        return contract_repo.delete(id)
+
     @staticmethod
     def add_contract_column_to_table(table):
         contracts = contract_repo.list_all_contracts()

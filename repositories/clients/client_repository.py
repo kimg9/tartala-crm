@@ -22,3 +22,11 @@ class ClientRepository:
 
     def save_to_db(self):
         self.session.commit()
+
+    def delete(self, client_id):
+        client = self.get_by_id(client_id)
+        if client:
+            self.session.delete(client)
+            self.save_to_db()
+            return True
+        return False

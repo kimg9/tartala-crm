@@ -9,13 +9,13 @@ from rich import box
 from rich.console import Console
 from rich.table import Table
 
+import utils as utils
+from db_config.connexion import session
 from domain.client_app import ClientApp
 from domain.contract_app import ContractApp
 from domain.event_app import EventApp
 from domain.user_app import UserApp
-from db_config.connexion import session
 from populate import Populator
-import utils as utils
 
 secret = os.environ.get("JWT_SECRET")
 populator = Populator(session)
@@ -118,15 +118,21 @@ def list_items(items, user):
 
 
 @entry_point.command("create_item")
-@click.argument("item_type", type=click.Choice(['client', 'event', 'contract']))
+@click.argument("item_type", type=click.Choice(['client', 'event', 'contract', 'user']))
 @authenticated_command
 def create_item(item_type, user):
-    match item_type:
-        case "client":
-            if not user_app.has_permission(user=user, resource_type="client", permission_type="create"):
-                print("Vous n'êtes pas autorisé à créer des clients.")
-                return
+    if not user_app.has_permission(user=user, resource_type=item_type, permission_type="create"):
+        print("Vous n'êtes pas autorisé à créer cette ressource.")
+        return
 
+    match item_type:
+        case "user":
+            user_dict = utils.prompt_user()
+            user = user_app.create(**user_dict)
+
+            print(
+                f"Vous avez réussi à créer le client (id du client : {user.id}).")
+        case "client":
             client_dict = utils.prompt_client()
             client_dict["user"] = user
             client = client_app.create(**client_dict)
@@ -135,10 +141,6 @@ def create_item(item_type, user):
                 f"Vous avez réussi à créer le client (id du client : {client.id}).")
 
         case "event":
-            if not user_app.has_permission(user=user, resource_type="event", permission_type="create"):
-                print("Vous n'êtes pas autorisé à créer des événements.")
-                return
-
             event_dict = utils.prompt_event()
             client_dict["user"] = user
             event = event_app.create(**event_dict)
@@ -159,16 +161,29 @@ def create_item(item_type, user):
 
 
 @entry_point.command("update_item")
-@click.argument("item_type", type=click.Choice(['client', 'event', 'contract']))
+@click.argument("item_type", type=click.Choice(['client', 'event', 'contract', 'user']))
 @click.argument("item_id", type=int)
 @authenticated_command
 def update_item(item_type, item_id, user):
-    match item_type:
-        case "client":
-            if not user_app.has_permission(user=user, resource_type="client", permission_type="update"):
-                print("Vous n'êtes pas autorisé à modifier des clients.")
-                return
+    if not user_app.has_permission(user=user, resource_type=item_type, permission_type="create"):
+        print("Vous n'êtes pas autorisé à modifier cette ressource.")
+        return
 
+    match item_type:
+        case "user":
+            user = user_app.get_by_id(item_id)
+            user_dict = {
+                "name": user.name,
+                "email": user.email,
+                "username": user.username,
+                "department": user.department.value
+            }
+            updated_user_dict = utils.prompt_user(user_dict)
+            user = user_app.update(id=item_id, **updated_user_dict)
+
+            print(
+                f"Vous avez réussi à créer l'utilisateur (id de l'utilisateur : {user.id}).")
+        case "client":
             client = client_app.get_by_id(item_id)
             client_dict = {
                 "full_name": client.full_name,
@@ -183,10 +198,6 @@ def update_item(item_type, item_id, user):
                 f"Vous avez réussi à mettre à jour le client (id du client : {client.id}).")
 
         case "event":
-            if not user_app.has_permission(user=user, resource_type="event", permission_type="update"):
-                print("Vous n'êtes pas autorisé à modifier des événements.")
-                return
-
             event = event_app.get_by_id(item_id)
             event_dict = {
                 "start": event.start,
@@ -211,6 +222,34 @@ def update_item(item_type, item_id, user):
 
             print(
                 f"Vous avez réussi à mettre à jour l'événement (id du contrat : {contract.id})")
+
+
+@entry_point.command("delete_item")
+@click.argument("item_type", type=click.Choice(['client', 'event', 'contract', 'user']))
+@click.argument("item_id", type=int)
+@authenticated_command
+def delete_item(item_type, item_id, user):
+    if not user_app.has_permission(user=user, resource_type=item_type, permission_type="delete"):
+        print("Vous n'êtes pas autorisé à supprimer cette ressource.")
+        return
+
+    match item_type:
+        case "user":
+            deleted = user_app.delete(item_id)
+            if deleted:
+                print("Utilisateur supprimé avec succès.")
+        case "client":
+            deleted = client_app.delete(item_id)
+            if deleted:
+                print("Client supprimé avec succès.")
+        case "event":
+            deleted = event_app.delete(item_id)
+            if deleted:
+                print("Evénement supprimé avec succès.")
+        case "contract":
+            deleted = contract_app.delete(item_id)
+            if deleted:
+                print("Contrat supprimé avec succès.")
 
 
 # TODO: remove after dev phase is over

@@ -22,3 +22,11 @@ class EventRepository:
 
     def save_to_db(self):
         self.session.commit()
+
+    def delete(self, event_id):
+        event = self.get_by_id(event_id)
+        if event:
+            self.session.delete(event)
+            self.save_to_db()
+            return True
+        return False

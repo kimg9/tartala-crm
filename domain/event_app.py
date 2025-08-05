@@ -33,6 +33,9 @@ class EventApp:
         event_repo.save_to_db()
         return event
 
+    def delete(self, id):
+        return event_repo.delete(id)
+
     @staticmethod
     def add_event_column_to_table(table):
         events = event_repo.list_all_events()

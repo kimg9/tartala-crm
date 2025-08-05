@@ -32,6 +32,9 @@ class ClientApp:
 
         client_repo.save_to_db()
         return client
+    
+    def delete(self, id):
+        return client_repo.delete(id)
 
     @staticmethod
     def add_client_column_to_table(table):

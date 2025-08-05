@@ -39,14 +39,13 @@ class UserRepository:
         self.session.commit()
         return user
 
-    def update_user(self, id, **kwargs):
-        user = self.get_by_id(id)
-        if not user:
-            return None
-
-        for key, value in kwargs.items():
-            if hasattr(user, key):
-                setattr(user, key, value)
-
+    def save_to_db(self):
         self.session.commit()
-        return user
+
+    def delete(self, user_id):
+        user = self.get_by_id(user_id)
+        if user:
+            self.session.delete(user)
+            self.save_to_db()
+            return True
+        return False
