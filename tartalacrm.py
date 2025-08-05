@@ -160,7 +160,7 @@ def update_item(item_type, item_id, user):
         case "user":
             user = user_app.get_by_id(item_id)
             if not user:
-                print(f"L'utilisateur {user.id} n'existe pas.")
+                print(f"L'utilisateur {item_id} n'existe pas.")
                 return
             user_dict = {
                 "name": user.name,
@@ -175,7 +175,7 @@ def update_item(item_type, item_id, user):
         case "client":
             client = client_app.get_by_id(item_id)
             if not client:
-                print(f"Le client {client.id} n'existe pas.")
+                print(f"Le client {item_id} n'existe pas.")
                 return
             client_dict = {
                 "full_name": client.full_name,
@@ -190,7 +190,7 @@ def update_item(item_type, item_id, user):
         case "event":
             event = event_app.get_by_id(item_id)
             if not event:
-                print(f"L'événement {event.id} n'existe pas.")
+                print(f"L'événement {item_id} n'existe pas.")
                 return
             event_dict = {
                 "start": event.start,
@@ -207,7 +207,7 @@ def update_item(item_type, item_id, user):
         case "contract":
             contract = contract_app.get_by_id(item_id)
             if not contract:
-                print(f"Le contrat {contract.id} n'existe pas.")
+                print(f"Le contrat {item_id} n'existe pas.")
                 return
             contract_dict = {
                 "amount": contract.amount,
