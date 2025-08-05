@@ -43,7 +43,7 @@ def email_input(prompt: str, text=None):
 
 
 def random_password():
-    return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(12))
+    return ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(16))
 
 
 def prompt_client(default: dict = None):
