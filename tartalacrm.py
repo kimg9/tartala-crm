@@ -129,35 +129,22 @@ def create_item(item_type, user):
         case "user":
             user_dict = utils.prompt_user()
             user = user_app.create(**user_dict)
-
-            print(
-                f"Vous avez réussi à créer le client (id du client : {user.id}).")
+            print(f"Utilisateur {user.id} créé avec succès.")
         case "client":
             client_dict = utils.prompt_client()
             client_dict["user"] = user
             client = client_app.create(**client_dict)
-
-            print(
-                f"Vous avez réussi à créer le client (id du client : {client.id}).")
-
+            print(f"Client {client.id} créé avec succès.")
         case "event":
             event_dict = utils.prompt_event()
             client_dict["user"] = user
             event = event_app.create(**event_dict)
-
-            print(
-                f"Vous avez réussi à créer l'événement (id de l'événement : {event.id})")
+            print(f"Evénement {event.id} créé avec succès.")
         case "contract":
-            if not user_app.has_permission(user=user, resource_type="contract", permission_type="create"):
-                print("Vous n'êtes pas autorisé à créer des contracts.")
-                return
-
             contract_dict = utils.prompt_contract()
             client_dict["user"] = user
             contract = contract_app.create(**contract_dict)
-
-            print(
-                f"Vous avez réussi à créer l'événement (id du contrat : {contract.id})")
+            print(f"Contrat {contract.id} créé avec succès")
 
 
 @entry_point.command("update_item")
@@ -172,6 +159,9 @@ def update_item(item_type, item_id, user):
     match item_type:
         case "user":
             user = user_app.get_by_id(item_id)
+            if not user:
+                print(f"L'utilisateur {user.id} n'existe pas.")
+                return
             user_dict = {
                 "name": user.name,
                 "email": user.email,
@@ -180,11 +170,13 @@ def update_item(item_type, item_id, user):
             }
             updated_user_dict = utils.prompt_user(user_dict)
             user = user_app.update(id=item_id, **updated_user_dict)
+            print(f"Utilisateur {user.id} modifié avec succès.")
 
-            print(
-                f"Vous avez réussi à créer l'utilisateur (id de l'utilisateur : {user.id}).")
         case "client":
             client = client_app.get_by_id(item_id)
+            if not client:
+                print(f"Le client {client.id} n'existe pas.")
+                return
             client_dict = {
                 "full_name": client.full_name,
                 "email": client.email,
@@ -193,12 +185,13 @@ def update_item(item_type, item_id, user):
             }
             updated_client_dict = utils.prompt_client(default=client_dict)
             client = client_app.update(id=item_id, **updated_client_dict)
-
-            print(
-                f"Vous avez réussi à mettre à jour le client (id du client : {client.id}).")
+            print(f"Client {client.id} modifié avec succès.")
 
         case "event":
             event = event_app.get_by_id(item_id)
+            if not event:
+                print(f"L'événement {event.id} n'existe pas.")
+                return
             event_dict = {
                 "start": event.start,
                 "end": event.end,
@@ -209,19 +202,23 @@ def update_item(item_type, item_id, user):
             }
             updated_event_dict = utils.prompt_event(default=event_dict)
             event = event_app.update(id=item_id, **updated_event_dict)
+            print(f"Evénement {event.id} modifié avec succès.")
 
-            print(
-                f"Vous avez réussi à mettre à jour l'événement (id de l'événement : {event.id})")
         case "contract":
-            if not user_app.has_permission(user=user, resource_type="contract", permission_type="update"):
-                print("Vous n'êtes pas autorisé à modifier des contracts.")
+            contract = contract_app.get_by_id(item_id)
+            if not contract:
+                print(f"Le contrat {contract.id} n'existe pas.")
                 return
-
-            contract_dict = utils.prompt_contract()
-            contract = contract_app.update(id=item_id, **contract_dict)
-
-            print(
-                f"Vous avez réussi à mettre à jour l'événement (id du contrat : {contract.id})")
+            contract_dict = {
+                "amount": contract.amount,
+                "due_amount": contract.due_amount,
+                "status": contract.status,
+                "client_id": contract.client_id,
+                "event_id": contract.event_id,
+            }
+            updated_contract_dict = utils.prompt_contract(contract_dict)
+            contract = contract_app.update(id=item_id, **updated_contract_dict)
+            print(f"Contrat {contract.id} modifié avec succès")
 
 
 @entry_point.command("delete_item")
@@ -235,21 +232,41 @@ def delete_item(item_type, item_id, user):
 
     match item_type:
         case "user":
-            deleted = user_app.delete(item_id)
-            if deleted:
-                print("Utilisateur supprimé avec succès.")
+            user = user_app.get_by_id(item_id)
+            if not user:
+                print(f"L'utilisateur {item_id} n'existe pas.")
+                return
+            if click.confirm(f"Êtes-vous sûr de vouloir supprimer l'utilisateur {user.id} {user.username} ?", default=False):
+                deleted = user_app.delete(item_id)
+                if deleted:
+                    print("Utilisateur supprimé avec succès.")
         case "client":
-            deleted = client_app.delete(item_id)
-            if deleted:
-                print("Client supprimé avec succès.")
+            client = client_app.get_by_id(item_id)
+            if not client:
+                print(f"Le client {item_id} n'existe pas.")
+                return
+            if click.confirm(f"Êtes-vous sûr de vouloir supprimer le client {client.id} {client.full_name} ?", default=False):
+                deleted = client_app.delete(item_id)
+                if deleted:
+                    print("Client supprimé avec succès.")
         case "event":
-            deleted = event_app.delete(item_id)
-            if deleted:
-                print("Evénement supprimé avec succès.")
+            event = event_app.get_by_id(item_id)
+            if not event:
+                print(f"L'événement {item_id} n'existe pas.")
+                return
+            if click.confirm(f"Êtes-vous sûr de vouloir supprimer l'événement {event.id} qui se déroule à {event.location} ?", default=False):
+                deleted = event_app.delete(item_id)
+                if deleted:
+                    print("Evénement supprimé avec succès.")
         case "contract":
-            deleted = contract_app.delete(item_id)
-            if deleted:
-                print("Contrat supprimé avec succès.")
+            contract = contract_app.get_by_id(item_id)
+            if not contract:
+                print(f"Le contrat {item_id} n'existe pas.")
+                return
+            if click.confirm(f"Êtes-vous sûr de vouloir supprimer l'événement {contract.id} qui se déroule à {contract.location} ?", default=False):
+                deleted = contract_app.delete(item_id)
+                if deleted:
+                    print("Contrat supprimé avec succès.")
 
 
 # TODO: remove after dev phase is over
