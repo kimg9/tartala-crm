@@ -28,7 +28,7 @@ class UserApp:
         return user_repo.get_by_id_and_username(id, username)
 
     def set_permission(self, user):
-        if user.department.value == DepartmentEnum.GESTION:
+        if user.department.value == DepartmentEnum.GESTION.value:
             perms_list = [
                 (PermissionTypeEnum.CREATE, ResourceTypeEnum.CLIENT),
                 (PermissionTypeEnum.CREATE, ResourceTypeEnum.CONTRACT),
@@ -41,7 +41,7 @@ class UserApp:
                 (PermissionTypeEnum.DELETE, ResourceTypeEnum.CLIENT),
             ]
             user_repo.bulk_update_permissions(user, perms_list)
-        elif user.department.value == DepartmentEnum.COMMERCIAL:
+        elif user.department.value == DepartmentEnum.COMMERCIAL.value:
             perms_list = [
                 (PermissionTypeEnum.CREATE, ResourceTypeEnum.CLIENT),
                 (PermissionTypeEnum.CREATE, ResourceTypeEnum.EVENT),
@@ -52,7 +52,7 @@ class UserApp:
                 (PermissionTypeEnum.UPDATE, ResourceTypeEnum.CONTRACT),
             ]
             user_repo.bulk_update_permissions(user, perms_list)
-        elif user.department.value == DepartmentEnum.SUPPORT:
+        elif user.department.value == DepartmentEnum.SUPPORT.value:
             perms_list = [
                 (PermissionTypeEnum.READ, ResourceTypeEnum.EVENT),
                 (PermissionTypeEnum.READ, ResourceTypeEnum.CLIENT),
@@ -63,6 +63,6 @@ class UserApp:
 
     def has_permission(self, user: Users, resource_type: str, permission_type: str) -> bool:
         return any(
-            p.resource_type == resource_type and p.permission_type == permission_type
+            p.resource_type == ResourceTypeEnum(resource_type) and p.permission_type == PermissionTypeEnum(permission_type)
             for p in user.permissions
         )

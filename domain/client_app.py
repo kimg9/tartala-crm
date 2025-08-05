@@ -7,6 +7,9 @@ client_repo = ClientRepository(session)
 
 
 class ClientApp:
+    def get_by_id(self, id):
+        return client_repo.get_by_id(id)
+
     def create(self, **kwargs):
         kwargs["creation_date"] = datetime.now()
         kwargs["modified_date"] = datetime.now()
@@ -33,7 +36,8 @@ class ClientApp:
     @staticmethod
     def add_client_column_to_table(table):
         clients = client_repo.list_all_clients()
-        
+
+        table.add_column("Identifiant", style="cyan")
         table.add_column("Nom complet", style="cyan")
         table.add_column("Email", style="green")
         table.add_column("Téléphone", style="green")
@@ -46,10 +50,12 @@ class ClientApp:
 
         for client in clients:
             table.add_row(
+                f"{client.id}",
                 client.full_name,
                 client.email,
                 client.telephone,
                 client.company_name,
                 client.creation_date.strftime("%d/%m/%Y"),
                 client.modified_date.strftime("%d/%m/%Y"),
+                client.user.name
             )

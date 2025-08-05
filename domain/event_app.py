@@ -7,6 +7,9 @@ event_repo = EventRepository(session)
 
 
 class EventApp:
+    def get_by_id(self, id):
+        return event_repo.get_by_id(id)
+    
     def create(self, **kwargs):
         kwargs["creation_date"] = datetime.now()
         kwargs["modified_date"] = datetime.now()

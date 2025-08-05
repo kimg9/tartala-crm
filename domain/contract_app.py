@@ -7,6 +7,9 @@ contract_repo = ContractRepository(session)
 
 
 class ContractApp:
+    def get_by_id(self, id):
+        return contract_repo.get_by_id(id)
+
     def create(self, **kwargs):
         kwargs["creation_date"] = datetime.now()
         kwargs["modified_date"] = datetime.now()
@@ -33,7 +36,7 @@ class ContractApp:
     @staticmethod
     def add_contract_column_to_table(table):
         contracts = contract_repo.list_all_contracts()
-        
+
         table.add_column("Identifiant", style="cyan")
         table.add_column("Nom du client", style="green")
         table.add_column("Contact du client", style="green")
