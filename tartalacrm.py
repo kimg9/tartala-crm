@@ -142,6 +142,10 @@ def create_item(item_type, user):
             print(f"Evénement {event.id} créé avec succès.")
         case "contract":
             contract_dict = utils.prompt_contract()
+            client = client_app.get_by_id(contract_dict["client_id"])
+            if not client.user_id == user.id:
+                print("Vous n'êtes pas autorisé à créer un contrat pour un client dont vous n'êtes pas responsables.")
+                return
             client_dict["user"] = user
             contract = contract_app.create(**contract_dict)
             print(f"Contrat {contract.id} créé avec succès")
@@ -177,6 +181,9 @@ def update_item(item_type, item_id, user):
             if not client:
                 print(f"Le client {item_id} n'existe pas.")
                 return
+            if not client.user_id == user.id:
+                print(f"Vous n'êtes pas le propriétaire de la fiche client {item_id}.")
+                return
             client_dict = {
                 "full_name": client.full_name,
                 "email": client.email,
@@ -191,6 +198,9 @@ def update_item(item_type, item_id, user):
             event = event_app.get_by_id(item_id)
             if not event:
                 print(f"L'événement {item_id} n'existe pas.")
+                return
+            if not event.user_id == user.id:
+                print(f"Vous n'êtes pas le propriétaire de la fiche événement {item_id}.")
                 return
             event_dict = {
                 "start": event.start,
@@ -232,9 +242,12 @@ def delete_item(item_type, item_id, user):
 
     match item_type:
         case "user":
-            user = user_app.get_by_id(item_id)
-            if not user:
+            to_del_user = user_app.get_by_id(item_id)
+            if not to_del_user:
                 print(f"L'utilisateur {item_id} n'existe pas.")
+                return
+            if not to_del_user.user_id == user.id:
+                print(f"Vous ne pouvez pas supprimer une ressource dont vous n'êtes pas propriétaire.")
                 return
             if click.confirm(f"Êtes-vous sûr de vouloir supprimer l'utilisateur {user.id} {user.username} ?", default=False):
                 deleted = user_app.delete(item_id)
@@ -245,6 +258,9 @@ def delete_item(item_type, item_id, user):
             if not client:
                 print(f"Le client {item_id} n'existe pas.")
                 return
+            if not client.user_id == user.id:
+                print(f"Vous ne pouvez pas supprimer une ressource dont vous n'êtes pas propriétaire.")
+                return
             if click.confirm(f"Êtes-vous sûr de vouloir supprimer le client {client.id} {client.full_name} ?", default=False):
                 deleted = client_app.delete(item_id)
                 if deleted:
@@ -254,6 +270,9 @@ def delete_item(item_type, item_id, user):
             if not event:
                 print(f"L'événement {item_id} n'existe pas.")
                 return
+            if not event.user_id == user.id:
+                print(f"Vous ne pouvez pas supprimer une ressource dont vous n'êtes pas propriétaire.")
+                return
             if click.confirm(f"Êtes-vous sûr de vouloir supprimer l'événement {event.id} qui se déroule à {event.location} ?", default=False):
                 deleted = event_app.delete(item_id)
                 if deleted:
@@ -262,6 +281,9 @@ def delete_item(item_type, item_id, user):
             contract = contract_app.get_by_id(item_id)
             if not contract:
                 print(f"Le contrat {item_id} n'existe pas.")
+                return
+            if not contract.user_id == user.id:
+                print(f"Vous ne pouvez pas supprimer une ressource dont vous n'êtes pas propriétaire.")
                 return
             if click.confirm(f"Êtes-vous sûr de vouloir supprimer l'événement {contract.id} qui se déroule à {contract.location} ?", default=False):
                 deleted = contract_app.delete(item_id)
