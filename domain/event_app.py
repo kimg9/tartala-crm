@@ -1,12 +1,17 @@
+import enum
 from datetime import datetime
 
 from db_config.connexion import session
 from repositories.events.event_repository import EventRepository
+from utils import BasicFilters
 
 event_repo = EventRepository(session)
 
 
 class EventApp:
+    class EventFilters(enum.Enum):
+        SUPPORT = "Evénements sans supports"
+
     def get_by_id(self, id):
         return event_repo.get_by_id(id)
 
@@ -36,9 +41,15 @@ class EventApp:
     def delete(self, id):
         return event_repo.delete(id)
 
-    @staticmethod
-    def add_event_column_to_table(table):
-        events = event_repo.list_all_events()
+    def add_event_column_to_table(self, user, filter, table):
+        event = []
+        match filter:
+            case BasicFilters.ALL.value:
+                events = event_repo.list_all_events()
+            case BasicFilters.MINE.value:
+                events = event_repo.list_user_events(user.id)
+            case self.EventFilters.SUPPORT.value:
+                events = event_repo.list_no_support_events()
 
         table.add_column("Identifiant", style="cyan")
         table.add_column("Identifiant du contrat", style="light_salmon1")

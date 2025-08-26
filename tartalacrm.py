@@ -111,7 +111,15 @@ def list_items(items, user):
         case "clients":
             client_app.add_client_column_to_table(table)
         case "events":
-            event_app.add_event_column_to_table(table)
+            filter = click.prompt(
+                "Filtre d'affichage",
+                type=click.Choice(
+                    [e.value for e in utils.BasicFilters] +
+                    [e.value for e in event_app.EventFilters]
+                ),
+                default=utils.BasicFilters.ALL.value
+            )
+            event_app.add_event_column_to_table(user, filter, table)
         case "contracts":
             filter = click.prompt(
                 "Filtre d'affichage",

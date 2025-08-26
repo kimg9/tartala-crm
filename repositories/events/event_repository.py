@@ -14,6 +14,12 @@ class EventRepository:
     def list_all_events(self):
         return self.session.execute(db.select(Events)).scalars().all()
 
+    def list_user_events(self, user_id):
+        return self.session.execute(db.select(Events).where(Events.user_id == user_id)).scalars().all()
+
+    def list_no_support_events(self):
+        return self.session.execute(db.select(Events).where(Events.user_id is None)).scalars().all()
+
     def create_event(self, **kwargs):
         event = Events(**kwargs)
         self.session.add(event)

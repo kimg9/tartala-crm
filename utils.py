@@ -11,7 +11,7 @@ from models.models import ContractStatusEnum, DepartmentEnum
 
 class BasicFilters(enum.Enum):
     ALL = "Tout voir"
-    MINE = "Voir mes fiches"
+    MINE = "Mes fiches"
 
 
 def input_with_prefill(prompt, text):

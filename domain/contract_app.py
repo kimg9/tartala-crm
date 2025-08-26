@@ -10,8 +10,8 @@ contract_repo = ContractRepository(session)
 
 class ContractApp:
     class ContractFilters(enum.Enum):
-        UNSIGNED = "Voir les contrats non signés"
-        DUE = "Voir les contrats non soldés"
+        UNSIGNED = "Contrats non signés"
+        DUE = "Contrats non soldés"
 
     def get_by_id(self, id):
         return contract_repo.get_by_id(id)
