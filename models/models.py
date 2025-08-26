@@ -36,6 +36,11 @@ class PermissionTypeEnum(enum.Enum):
     DELETE = "delete"
 
 
+class ContractStatusEnum(enum.Enum):
+    SIGNED = "Signé"
+    NOT_SIGNED = "Non signé"
+
+
 class Resources(Base):
     # __abstract__ = True
     __tablename__ = "resources"
@@ -124,7 +129,7 @@ class Contracts(Resources):
     id = db.Column(db.Integer, db.ForeignKey("resources.id"), primary_key=True)
     amount = db.Column(db.Integer)
     due_amount = db.Column(db.Integer)
-    status = db.Column(db.String)
+    status = db.Column(db.Enum(ContractStatusEnum))
     client_id = db.Column(db.Integer, db.ForeignKey("clients.id"))
     event_id = db.Column(db.Integer, db.ForeignKey("events.id"))
 

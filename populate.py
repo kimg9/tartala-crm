@@ -7,9 +7,9 @@ from domain.client_app import ClientApp
 from domain.contract_app import ContractApp
 from domain.event_app import EventApp
 from domain.user_app import UserApp
-from models.models import (Clients, Contracts, DepartmentEnum, Events,
-                           Permissions, PermissionTypeEnum, ResourceTypeEnum,
-                           Users)
+from models.models import (Clients, Contracts, ContractStatusEnum,
+                           DepartmentEnum, Events, Permissions,
+                           PermissionTypeEnum, ResourceTypeEnum, Users)
 
 user_app = UserApp()
 client_app = ClientApp()
@@ -194,7 +194,7 @@ class Populator:
                 **{
                     "amount": 1000,
                     "due_amount": 500,
-                    "status": "Signé",
+                    "status": ContractStatusEnum.SIGNED,
                     "client_id": created_client.id,
                     "client": created_client,
                     "user": user,

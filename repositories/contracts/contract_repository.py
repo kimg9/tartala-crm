@@ -1,6 +1,6 @@
 import sqlalchemy as db
 
-from models.models import Contracts
+from models.models import Contracts, ContractStatusEnum
 
 
 class ContractRepository:
@@ -13,6 +13,15 @@ class ContractRepository:
 
     def list_all_contracts(self):
         return self.session.execute(db.select(Contracts)).scalars().all()
+
+    def list_user_contracts(self, user_id):
+        return self.session.execute(db.select(Contracts).where(Contracts.user_id == user_id)).scalars().all()
+
+    def list_all_unsigned_contracts(self):
+        return self.session.execute(db.select(Contracts).where(Contracts.status == ContractStatusEnum.NOT_SIGNED)).scalars().all()
+
+    def list_all_due_contracts(self):
+        return self.session.execute(db.select(Contracts).where(Contracts.due_amount > 0)).scalars().all()
 
     def create_contract(self, **kwargs):
         contract = Contracts(**kwargs)

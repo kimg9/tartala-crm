@@ -1,12 +1,18 @@
+import enum
 from datetime import datetime
 
 from db_config.connexion import session
 from repositories.contracts.contract_repository import ContractRepository
+from utils import BasicFilters
 
 contract_repo = ContractRepository(session)
 
 
 class ContractApp:
+    class ContractFilters(enum.Enum):
+        UNSIGNED = "Voir les contrats non signés"
+        DUE = "Voir les contrats non soldés"
+
     def get_by_id(self, id):
         return contract_repo.get_by_id(id)
 
@@ -36,9 +42,17 @@ class ContractApp:
     def delete(self, id):
         return contract_repo.delete(id)
 
-    @staticmethod
-    def add_contract_column_to_table(table):
-        contracts = contract_repo.list_all_contracts()
+    def add_contract_column_to_table(self, user, filter, table):
+        contract = []
+        match filter:
+            case BasicFilters.ALL.value:
+                contracts = contract_repo.list_all_contracts()
+            case BasicFilters.MINE.value:
+                contracts = contract_repo.list_user_contracts(user.id)
+            case self.ContractFilters.UNSIGNED.value:
+                contracts = contract_repo.list_all_unsigned_contracts()
+            case self.ContractFilters.DUE.value:
+                contracts = contract_repo.list_all_due_contracts()
 
         table.add_column("Identifiant", style="cyan")
         table.add_column("Nom du client", style="green")
@@ -62,5 +76,5 @@ class ContractApp:
                 f"{contract.due_amount} €",
                 contract.creation_date.strftime("%d/%m/%Y"),
                 contract.modified_date.strftime("%d/%m/%Y"),
-                contract.status,
+                contract.status.value,
             )

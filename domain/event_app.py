@@ -9,7 +9,7 @@ event_repo = EventRepository(session)
 class EventApp:
     def get_by_id(self, id):
         return event_repo.get_by_id(id)
-    
+
     def create(self, **kwargs):
         kwargs["creation_date"] = datetime.now()
         kwargs["modified_date"] = datetime.now()
@@ -39,7 +39,7 @@ class EventApp:
     @staticmethod
     def add_event_column_to_table(table):
         events = event_repo.list_all_events()
-        
+
         table.add_column("Identifiant", style="cyan")
         table.add_column("Identifiant du contrat", style="light_salmon1")
         table.add_column("Nom du client", style="green")

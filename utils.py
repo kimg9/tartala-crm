@@ -1,3 +1,4 @@
+import enum
 import random
 import re
 import readline
@@ -5,7 +6,12 @@ import string
 
 import click
 
-from models.models import DepartmentEnum
+from models.models import ContractStatusEnum, DepartmentEnum
+
+
+class BasicFilters(enum.Enum):
+    ALL = "Tout voir"
+    MINE = "Voir mes fiches"
 
 
 def input_with_prefill(prompt, text):
@@ -123,11 +129,11 @@ def prompt_contract(default: dict = None):
         type=int,
         default=default["due_amount"] if default else None
     )
-    status = click.prompt(
+    status = ContractStatusEnum(click.prompt(
         "Status",
-        type=str,
+        type=click.Choice([e.value for e in ContractStatusEnum]),
         default=default["status"] if default else None
-    )
+    ))
     client_id = click.prompt(
         "Id du client",
         type=int,
