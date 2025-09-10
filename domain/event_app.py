@@ -76,3 +76,6 @@ class EventApp:
                 f"{event.attendees}",
                 event.notes,
             )
+
+    def list_all_events(self):
+        return event_repo.list_all_events()

@@ -78,3 +78,6 @@ class ContractApp:
                 contract.modified_date.strftime("%d/%m/%Y"),
                 contract.status.value,
             )
+
+    def list_all_contracts(self):
+        return contract_repo.list_all_contracts()

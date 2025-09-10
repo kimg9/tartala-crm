@@ -138,12 +138,10 @@ class Contracts(Resources):
         back_populates="contracts",
         uselist=False,
         foreign_keys=[client_id],
-        collection_class=set,
     )
     event = relationship(
         "Events",
         back_populates="contract",
-        uselist=False,
         foreign_keys=[event_id],
         collection_class=set,
     )
@@ -176,14 +174,12 @@ class Events(Resources):
         foreign_keys=[client_id],
         back_populates="events",
         uselist=False,
-        collection_class=set,
     )
     contract = relationship(
         "Contracts",
         foreign_keys="[Contracts.event_id]",
         back_populates="event",
         uselist=False,
-        collection_class=set,
     )
 
     @classmethod

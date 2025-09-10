@@ -62,3 +62,6 @@ class ClientApp:
                 client.modified_date.strftime("%d/%m/%Y"),
                 client.user.name
             )
+
+    def list_all_clients(self):
+        return client_repo.list_all_clients()
