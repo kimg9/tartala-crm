@@ -12,6 +12,12 @@ class UserApp:
     def get_by_id(self, id):
         return user_repo.get_by_id(id)
 
+    def get_by_username(self, username):
+        return user_repo.get_by_username(username)
+
+    def get_by_id_and_username(self, id, username):
+        return user_repo.get_by_id_and_username(id, username)
+
     def create(self, **kwargs):
         if "password" in kwargs:
             kwargs["password"] = argon2.hash(kwargs["password"])
