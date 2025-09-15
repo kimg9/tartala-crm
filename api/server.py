@@ -7,7 +7,31 @@ from domain.user_app import UserApp
 from .serializers import Client, Contract, Event, User, UserCreate
 from typing import List
 
-app = FastAPI()
+app = FastAPI(
+    title='TartalaCRM',
+    summary='API de TartalaCRM',
+    description="""TartalaCRM est un CRM permettant de gérer clients, contrats et événements, 
+    avec une gestion des rôles et une sécurité renforcée (SQLAlchemy, moindres privilèges, journalisation). \n
+    Chaque département (commercial, support, gestion) dispose de droits spécifiques pour créer, modifier ou consulter les données.""",
+    openapi_tags=[
+        {
+            'name': 'clients',
+            'description': 'Gestion des clients'
+        },
+        {
+            'name': 'contrats',
+            'description': 'Gestion des contrats'
+        },
+        {
+            'name': 'events',
+            'description': 'Gestion des événements'
+        },
+        {
+            'name': 'users',
+            'description': 'Gestion des utilisateurs'
+        },
+    ]
+)
 
 event_domain = EventApp()
 contract_domain = ContractApp()
@@ -47,100 +71,100 @@ def get_user_or_404(id):
     return user
 
 
-@app.get("/events/", response_model=List[Event])
+@app.get("/events/", response_model=List[Event], tags=['events',])
 def list_events():
     return event_domain.list_all_events()
 
 
-@app.get("/clients/", response_model=List[Client])
+@app.get("/clients/", response_model=List[Client], tags=['clients',])
 def list_clients():
     return client_domain.list_all_clients()
 
 
-@app.get("/contracts/", response_model=List[Contract])
+@app.get("/contracts/", response_model=List[Contract], tags=['contrats',])
 def list_contracts():
     return contract_domain.list_all_contracts()
 
 
-@app.get("/event/{id}", response_model=Event)
+@app.get("/event/{id}", response_model=Event, tags=['events',])
 def get_event(id: int):
     return get_event_or_404(id)
 
 
-@app.get("/client/{id}", response_model=Client)
+@app.get("/client/{id}", response_model=Client, tags=['clients',])
 def get_client(id: int):
     return get_client_or_404(id)
 
 
-@app.get("/contract/{id}", response_model=Contract)
+@app.get("/contract/{id}", response_model=Contract, tags=['contrats',])
 def get_contract(id: int):
     return get_contract_or_404(id)
 
 
-@app.get("/user/{id}", response_model=User)
+@app.get("/user/{id}", response_model=User, tags=['users',])
 def get_user(id: int):
     return get_user_or_404(id)
 
 
-@app.post("/event", response_model=Event)
+@app.post("/event", response_model=Event, tags=['events',])
 def create_event(event: Event):
     return event_domain.create(**event)
 
 
-@app.post("/client", response_model=Client)
+@app.post("/client", response_model=Client, tags=['clients',])
 def create_client(client: Client):
     return client_domain.create(**client)
 
 
-@app.post("/contract", response_model=Contract)
+@app.post("/contract", response_model=Contract, tags=['contrats',])
 def create_contract(contract: Contract):
     return contract_domain.create(**contract)
 
 
-@app.post("/user", response_model=User)
+@app.post("/user", response_model=User, tags=['users',])
 def create_user(user: UserCreate):
     return user_domain.create(**user)
 
 
-@app.put("/event/{id}", response_model=Event)
+@app.put("/event/{id}", response_model=Event, tags=['events',])
 def update_event(id: int, event: Event):
     return event_domain.update(id=id, **event)
 
 
-@app.put("/client/{id}", response_model=Client)
+@app.put("/client/{id}", response_model=Client, tags=['clients',])
 def update_client(id: int, client: Client):
     return client_domain.update(id=id, **client)
 
 
-@app.put("/contract/{id}", response_model=Contract)
+@app.put("/contract/{id}", response_model=Contract, tags=['contrats',])
 def update_contract(id: int, contract: Contract):
     return contract_domain.update(id=id, **contract)
 
 
-@app.put("/user/{id}", response_model=User)
+@app.put("/user/{id}", response_model=User, tags=['users',])
 def update_user(id: int, user: User):
     return user_domain.update(id=id ** user)
 
 
-@app.delete("/event/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/event/{id}", status_code=status.HTTP_204_NO_CONTENT, tags=['users',])
 def delete_event(id: int):
     get_event_or_404(id)
     event_domain.delete(id)
 
 
-@app.delete("/client/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/client/{id}", status_code=status.HTTP_204_NO_CONTENT, tags=['clients',])
 def delete_client(id: int):
     get_client_or_404(id)
     client_domain.delete(id)
 
 
-@app.delete("/contract/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/contract/{id}", status_code=status.HTTP_204_NO_CONTENT, tags=['contrats',])
 def delete_contract(id: int):
     get_contract_or_404(id)
     contract_domain.delete(id)
 
 
-@app.delete("/user/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/user/{id}", status_code=status.HTTP_204_NO_CONTENT, tags=['users',])
 def delete_user(id: int):
     get_user_or_404(id)
     user_domain.delete(id)
