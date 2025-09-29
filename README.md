@@ -53,12 +53,12 @@ L’architecture suit un modèle **Domain / Repository** afin de séparer claire
 
 ## ⚙️ Configuration
 
-Créer un fichier `.env` avec vos variables :
+Créer un fichier `.envrc` avec vos variables :
 
 ```ini
-DATABASE_URL=postgresql://user:password@localhost:5432/epic_events
-SENTRY_DSN=<votre_dsn_sentry>
-JWT_SECRET=<votre_secret_jwt>
+export DATABASE_URL=postgresql://user:password@localhost:5432/epic_events
+export SENTRY_DSN=<votre_dsn_sentry>
+export JWT_SECRET=<votre_secret_jwt>
 ```
 
 
