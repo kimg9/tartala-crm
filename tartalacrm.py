@@ -1,3 +1,4 @@
+import sentry_sdk
 import getpass
 import os
 from datetime import date
@@ -325,4 +326,11 @@ def populate():
 
 
 if __name__ == "__main__":
+    sentry_sdk.init(
+        dsn=os.environ.get("SENTRY_DSN"),
+        # Add request headers and IP for users,
+        # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+        send_default_pii=True,
+    )
+
     entry_point()
