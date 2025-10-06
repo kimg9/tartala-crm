@@ -156,7 +156,7 @@ def create_item(item_type, user):
             print(f"Client {client.id} créé avec succès.")
         case "event":
             event_dict = utils.prompt_event()
-            client_dict["user"] = user
+            event_dict["user"] = user
             event = event_app.create(**event_dict)
             print(f"Evénement {event.id} créé avec succès.")
         case "contract":
