@@ -313,7 +313,7 @@ def delete_item(item_type, item_id, user):
                 print(
                     f"Vous ne pouvez pas supprimer une ressource dont vous n'êtes pas propriétaire.")
                 return
-            if click.confirm(f"Êtes-vous sûr de vouloir supprimer l'événement {contract.id} qui se déroule à {contract.location} ?", default=False):
+            if click.confirm(f"Êtes-vous sûr de vouloir supprimer l'événement {contract.id} ?", default=False):
                 deleted = contract_app.delete(item_id)
                 if deleted:
                     print("Contrat supprimé avec succès.")
